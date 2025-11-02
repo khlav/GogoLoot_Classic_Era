@@ -210,13 +210,25 @@ function GogoLoot:HookTrades(events)
     GogoLoot:ResetTrade()
     GogoLoot.lastTradeAnnounceTime = GetTime()
 
-    local check = CreateFrame("CheckButton", "GogoLoot_AnnounceToggle", TradeFrame, "OptionsCheckButtonTemplate")
-    GogoLoot_AnnounceToggleText:SetText("Announce Trades")
-    check.tooltipText = "GogoLoot will announce trades to party or raid, or send a private message if you are not in a group."
-
-    check:SetPoint("BOTTOMLEFT", "TradeFrame", "BOTTOMLEFT", 6, 4)
+    local check = CreateFrame("CheckButton", "GogoLoot_AnnounceToggle", TradeFrame)
     check:SetWidth(26)
     check:SetHeight(26)
+    check:SetPoint("BOTTOMLEFT", "TradeFrame", "BOTTOMLEFT", 6, 4)
+    
+    -- Create texture for unchecked state
+    check:SetNormalTexture("Interface\\Buttons\\UI-CheckBox-Up")
+    check:SetPushedTexture("Interface\\Buttons\\UI-CheckBox-Down")
+    check:SetHighlightTexture("Interface\\Buttons\\UI-CheckBox-Highlight")
+    check:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check")
+    check:SetDisabledCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check-Disabled")
+    
+    -- Create label
+    local label = check:CreateFontString("GogoLoot_AnnounceToggleText", "OVERLAY", "GameFontNormalSmall")
+    label:SetPoint("LEFT", check, "RIGHT", 5, 0)
+    label:SetText("Announce Trades")
+    check.text = label
+    
+    check.tooltipText = "GogoLoot will announce trades to party or raid, or send a private message if you are not in a group."
 
     check:SetChecked(true)
 

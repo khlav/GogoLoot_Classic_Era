@@ -21,6 +21,14 @@ GogoLoot = {}
 
 CONFIG_VERSION = 10
 
+-- Classic Era compatible GetLootMethod override
+-- In Classic Era, GetLootMethod() doesn't exist, so use CVar instead
+if not GetLootMethod or type(GetLootMethod) ~= "function" then
+    function GetLootMethod()
+        return GetCVar("lootMethod") or "freeforall"
+    end
+end
+
 function GogoLoot:BuildConfig()
     GogoLoot_Config = {
         ["speedyLoot"] = true,
@@ -266,9 +274,38 @@ function GogoLoot:GetGroupMemberNames()
 end
 
 function GogoLoot:areWeMasterLooter()
-    local masterLooter = select(2, GetLootMethod()) -- todo: cache this
-    return 0 == masterLooter--masterLooter and (masterLooter == 0 or (UnitName("player") == GetRaidRosterInfo(masterLooter)))
+    -- Classic Era compatibility: GetLootMethod() doesn't exist or works differently
+    local lootMethod = GetCVar("lootMethod") or ""
+    if lootMethod ~= "master" then
+        return false
+    end
+    
+    -- Check if player is the master looter
+    -- In Classic Era, if loot method is master, the master looter is typically the group leader
+    -- For raids, we check if we're the leader or if lootMethod CVar indicates we're the master
+    if IsInRaid() then
+        -- In raid, check if we're the leader (typically the master looter in Classic Era)
+        -- Also check raid roster if GetRaidRosterInfo supports isML parameter
+        if UnitIsGroupLeader("player") then
+            return true
+        end
+        -- Fallback: check raid roster for master looter flag (if supported in this Classic Era version)
+        for i = 1, GetNumGroupMembers() do
+            local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML = GetRaidRosterInfo(i)
+            if isML ~= nil and isML and UnitName("player") == name then
+                return true
+            end
+        end
+        return false
+    elseif IsInGroup() then
+        -- In party, if master loot and we're the leader, we're the master looter
+        return UnitIsGroupLeader("player")
+    else
+        -- Solo, can't be master looter
+        return false
+    end
 end
+
 
 GogoLoot.canOpenWindow = false
 
@@ -459,8 +496,12 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
     GogoLoot:TradeEvent(evt, arg, message, a, b, c, ...)
 
     if ("ADDON_LOADED" == evt) then
-        if ("GogoLoot" == arg) then
+        if ("GogoLoot_Classic_Era" == arg) then
             events:UnregisterEvent("ADDON_LOADED")
+            -- Initialize config if it doesn't exist (before any events can access it)
+            if (not GogoLoot_Config) or (not GogoLoot_Config._version) or GogoLoot_Config._version < CONFIG_VERSION then
+                GogoLoot:BuildConfig()
+            end
             GogoLoot:Initialize(events)
         end
     elseif "LOOT_READY" == evt then
@@ -634,7 +675,7 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
             lootTicker = nil
         end
         GogoLoot:showLootFrame("inventory error " .. message)
-    elseif "BAG_UPDATE" == evt and GogoLoot_Config.enableAutoGray and WOW_PROJECT_ID ~= WOW_PROJECT_BURNING_CRUSADE_CLASSIC then
+    elseif "BAG_UPDATE" == evt and GogoLoot_Config and GogoLoot_Config.enableAutoGray and WOW_PROJECT_ID ~= WOW_PROJECT_BURNING_CRUSADE_CLASSIC then
 
         -- auto gray
         --debug("BagUpdate!")
