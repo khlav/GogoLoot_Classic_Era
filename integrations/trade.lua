@@ -33,7 +33,8 @@ end
 
 function GogoLoot:PrintTrade()
 
-    if GogoLoot_Config.disableTradeAnnounce or (not GogoLoot.tradeState.player) then
+    -- Don't announce if disabled, if Gargul's checkbox exists (let Gargul handle it), or if no trade partner
+    if GogoLoot_Config.disableTradeAnnounce or GogoLoot:HasGargulCheckbox() or (not GogoLoot.tradeState.player) then
         return
     end
 
@@ -194,6 +195,32 @@ function GogoLoot:TestThing()
     SendChatMessage("test", "WHISPER", "Orcish", "Testerg")
 end
 
+-- Helper function to check if Gargul's checkbox exists
+function GogoLoot:HasGargulCheckbox()
+    return _G.GargulAnnounceTradeDetails ~= nil
+end
+
+-- Helper function to update checkbox visibility based on Gargul's presence
+function GogoLoot:UpdateTradeCheckboxVisibility()
+    if not GogoLoot.tradeCheckbox then
+        return
+    end
+    
+    if GogoLoot:HasGargulCheckbox() then
+        -- Hide our checkbox if Gargul's exists
+        GogoLoot.tradeCheckbox:Hide()
+        if GogoLoot.tradeCheckbox.text then
+            GogoLoot.tradeCheckbox.text:Hide()
+        end
+    else
+        -- Show our checkbox if Gargul's doesn't exist
+        GogoLoot.tradeCheckbox:Show()
+        if GogoLoot.tradeCheckbox.text then
+            GogoLoot.tradeCheckbox.text:Show()
+        end
+    end
+end
+
 function GogoLoot:HookTrades(events)
     events:RegisterEvent("TRADE_SHOW")
 	events:RegisterEvent("TRADE_CLOSED")
@@ -210,36 +237,41 @@ function GogoLoot:HookTrades(events)
     GogoLoot:ResetTrade()
     GogoLoot.lastTradeAnnounceTime = GetTime()
 
-    local check = CreateFrame("CheckButton", "GogoLoot_AnnounceToggle", TradeFrame)
-    check:SetWidth(26)
-    check:SetHeight(26)
-    check:SetPoint("BOTTOMLEFT", "TradeFrame", "BOTTOMLEFT", 6, 4)
-    
-    -- Create texture for unchecked state
-    check:SetNormalTexture("Interface\\Buttons\\UI-CheckBox-Up")
-    check:SetPushedTexture("Interface\\Buttons\\UI-CheckBox-Down")
-    check:SetHighlightTexture("Interface\\Buttons\\UI-CheckBox-Highlight")
-    check:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check")
-    check:SetDisabledCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check-Disabled")
-    
-    -- Create label
-    local label = check:CreateFontString("GogoLoot_AnnounceToggleText", "OVERLAY", "GameFontNormalSmall")
-    label:SetPoint("LEFT", check, "RIGHT", 5, 0)
-    label:SetText("Announce Trades")
-    check.text = label
-    
-    check.tooltipText = "GogoLoot will announce trades to party or raid, or send a private message if you are not in a group."
+    -- Only create checkbox if Gargul's doesn't exist
+    if not GogoLoot:HasGargulCheckbox() then
+        local check = CreateFrame("CheckButton", "GogoLoot_AnnounceToggle", TradeFrame)
+        check:SetWidth(26)
+        check:SetHeight(26)
+        check:SetPoint("BOTTOMLEFT", "TradeFrame", "BOTTOMLEFT", 6, 4)
+        
+        -- Create texture for unchecked state
+        check:SetNormalTexture("Interface\\Buttons\\UI-CheckBox-Up")
+        check:SetPushedTexture("Interface\\Buttons\\UI-CheckBox-Down")
+        check:SetHighlightTexture("Interface\\Buttons\\UI-CheckBox-Highlight")
+        check:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check")
+        check:SetDisabledCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check-Disabled")
+        
+        -- Create label
+        local label = check:CreateFontString("GogoLoot_AnnounceToggleText", "OVERLAY", "GameFontNormalSmall")
+        label:SetPoint("LEFT", check, "RIGHT", 5, 0)
+        label:SetText("Announce Trades")
+        check.text = label
+        
+        check.tooltipText = "GogoLoot will announce trades to party or raid, or send a private message if you are not in a group."
 
-    check:SetChecked(true)
+        check:SetChecked(true)
 
-    check:SetScript("OnClick", function(self) GogoLoot_Config.disableTradeAnnounce = not self:GetChecked() end)
-
+        check:SetScript("OnClick", function(self) GogoLoot_Config.disableTradeAnnounce = not self:GetChecked() end)
+        
+        -- Store reference for later visibility checks
+        GogoLoot.tradeCheckbox = check
+    end
 end
 
 function GogoLoot:TradeEvent(evt, arg, message, a, b, c, ...)
     if evt == "UI_ERROR_MESSAGE" and (message == ERR_TRADE_BAG_FULL or message == ERR_TRADE_MAX_COUNT_EXCEEDED or message == ERR_TRADE_TARGET_BAG_FULL or message == ERR_TRADE_TARGET_MAX_COUNT_EXCEEDED) then
         -- trade failed
-        if GogoLoot.tradeState.player then
+        if GogoLoot.tradeState.player and not GogoLoot:HasGargulCheckbox() then
             if IsInGroup() then
                 SendChatMessage(string.format(GogoLoot.TRADE_FAILED, GogoLoot.tradeState.player), UnitInRaid("Player") and "RAID" or "PARTY")
             else
@@ -248,7 +280,7 @@ function GogoLoot:TradeEvent(evt, arg, message, a, b, c, ...)
         end
     elseif evt == "TRADE_REQUEST_CANCEL" or (evt == "UI_INFO_MESSAGE" and message == ERR_TRADE_CANCELLED) then--elseif (evt == "UI_INFO_MESSAGE" and message == ERR_TRADE_CANCELLED) or evt == "TRADE_CLOSED" or evt == "TRADE_REQUEST_CANCEL" then
         -- trade cancelled
-        if GogoLoot_Config.disableTradeAnnounce then
+        if GogoLoot_Config.disableTradeAnnounce or GogoLoot:HasGargulCheckbox() then
             return
         end
 
@@ -270,5 +302,37 @@ function GogoLoot:TradeEvent(evt, arg, message, a, b, c, ...)
         GogoLoot:UpdateTrade()
     elseif evt == "TRADE_SHOW" or evt == "ITEM_LOCKED" then
         GogoLoot:UpdateTrade()
+        -- Check for Gargul's checkbox on TRADE_SHOW to handle race conditions
+        -- If Gargul loads after us or creates its checkbox lazily, hide ours
+        GogoLoot:UpdateTradeCheckboxVisibility()
+        
+        -- If Gargul's checkbox exists but ours doesn't, make sure we don't create it
+        if GogoLoot:HasGargulCheckbox() and not GogoLoot.tradeCheckbox then
+            -- Gargul's checkbox exists, don't create ours
+        elseif not GogoLoot:HasGargulCheckbox() and not GogoLoot.tradeCheckbox then
+            -- Neither exists, create ours now (in case Gargul never loads)
+            local check = CreateFrame("CheckButton", "GogoLoot_AnnounceToggle", TradeFrame)
+            check:SetWidth(26)
+            check:SetHeight(26)
+            check:SetPoint("BOTTOMLEFT", "TradeFrame", "BOTTOMLEFT", 6, 4)
+            
+            check:SetNormalTexture("Interface\\Buttons\\UI-CheckBox-Up")
+            check:SetPushedTexture("Interface\\Buttons\\UI-CheckBox-Down")
+            check:SetHighlightTexture("Interface\\Buttons\\UI-CheckBox-Highlight")
+            check:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check")
+            check:SetDisabledCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check-Disabled")
+            
+            local label = check:CreateFontString("GogoLoot_AnnounceToggleText", "OVERLAY", "GameFontNormalSmall")
+            label:SetPoint("LEFT", check, "RIGHT", 5, 0)
+            label:SetText("Announce Trades")
+            check.text = label
+            
+            check.tooltipText = "GogoLoot will announce trades to party or raid, or send a private message if you are not in a group."
+            
+            check:SetChecked(true)
+            check:SetScript("OnClick", function(self) GogoLoot_Config.disableTradeAnnounce = not self:GetChecked() end)
+            
+            GogoLoot.tradeCheckbox = check
+        end
     end
 end
