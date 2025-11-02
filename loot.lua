@@ -22,10 +22,53 @@ GogoLoot = {}
 CONFIG_VERSION = 10
 
 -- Classic Era compatible GetLootMethod override
--- In Classic Era, GetLootMethod() doesn't exist, so use CVar instead
+-- In Classic Era, GetLootMethod() doesn't exist and CVars don't work
+-- Detect loot method by checking for master looter presence (isML flag) rather than just threshold
 if not GetLootMethod or type(GetLootMethod) ~= "function" then
     function GetLootMethod()
-        return GetCVar("lootMethod") or "freeforall"
+        local threshold = GetLootThreshold()
+        
+        -- If not in group/raid, default to freeforall
+        if not IsInGroup() and not IsInRaid() then
+            return "freeforall"
+        end
+        
+        -- Check for master looter presence
+        if IsInRaid() then
+            -- In raid, check raid roster for anyone with isML=true flag
+            for i = 1, GetNumGroupMembers() do
+                local name, _, _, _, _, _, _, _, _, _, isML = GetRaidRosterInfo(i)
+                if isML ~= nil and isML and name then
+                    -- Master looter found
+                    return "master"
+                end
+            end
+            -- No master looter found, check threshold
+            if threshold and threshold > 0 then
+                return "group"
+            else
+                return "freeforall"
+            end
+        elseif IsInGroup() then
+            -- In party, check if player is group leader (master loot indicator for parties)
+            if UnitIsGroupLeader("player") then
+                if threshold and threshold > 0 then
+                    return "master"
+                else
+                    return "freeforall"
+                end
+            else
+                -- Not leader, but check if group loot is enabled
+                if threshold and threshold > 0 then
+                    return "group"
+                else
+                    return "freeforall"
+                end
+            end
+        end
+        
+        -- Fallback
+        return "freeforall"
     end
 end
 
@@ -274,31 +317,66 @@ function GogoLoot:GetGroupMemberNames()
 end
 
 function GogoLoot:areWeMasterLooter()
-    -- Classic Era compatibility: GetLootMethod() doesn't exist or works differently
-    local lootMethod = GetCVar("lootMethod") or ""
-    if lootMethod ~= "master" then
+    -- Classic Era compatibility: Check master looter status
+    -- Must be in a group/raid to be master looter
+    if not IsInGroup() and not IsInRaid() then
         return false
     end
     
-    -- Check if player is the master looter
-    -- In Classic Era, if loot method is master, the master looter is typically the group leader
-    -- For raids, we check if we're the leader or if lootMethod CVar indicates we're the master
-    if IsInRaid() then
-        -- In raid, check if we're the leader (typically the master looter in Classic Era)
-        -- Also check raid roster if GetRaidRosterInfo supports isML parameter
-        if UnitIsGroupLeader("player") then
-            return true
-        end
-        -- Fallback: check raid roster for master looter flag (if supported in this Classic Era version)
-        for i = 1, GetNumGroupMembers() do
-            local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML = GetRaidRosterInfo(i)
-            if isML ~= nil and isML and UnitName("player") == name then
+    local playerName = UnitName("player")
+    
+    -- Practical check: If loot is open, try to get master loot candidates
+    -- This is the most reliable way to check if we're the master looter
+    if LootFrame and LootFrame:IsShown() then
+        local numLoot = GetNumLootItems()
+        if numLoot > 0 then
+            -- Try to get master loot candidates for the first loot slot
+            -- If we're the master looter, this should return valid data
+            -- If we're NOT the master looter, this will return nil or error
+            local success, candidate = pcall(GetMasterLootCandidate, 1, 1)
+            if success and candidate then
+                -- If we can get candidates, we're the master looter
                 return true
+            else
+                -- If we can't get candidates, we're not the master looter
+                return false
             end
         end
+    end
+    
+    -- For checking before loot appears: Check raid roster for master looter assignment
+    -- This is the most reliable method: find who has isML=true flag
+    -- If master loot is NOT enabled, isML will be nil/false for everyone
+    if IsInRaid() then
+        -- In raid, check raid roster for master looter flag
+        -- GetRaidRosterInfo returns: name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML
+        -- First, find who has the master looter flag (isML)
+        local masterLooterName = nil
+        for i = 1, GetNumGroupMembers() do
+            local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML = GetRaidRosterInfo(i)
+            -- Check if this person is marked as master looter
+            -- If isML is true, master loot is enabled and this person is the ML
+            -- If isML is nil/false for everyone, master loot is not enabled
+            if isML ~= nil and isML and name then
+                masterLooterName = name
+                break
+            end
+        end
+        
+        -- If we found someone with isML=true, master loot is enabled - check if it's us
+        if masterLooterName then
+            return masterLooterName == playerName
+        end
+        
+        -- If no one has isML=true (all are nil/false), master loot is not enabled
         return false
     elseif IsInGroup() then
-        -- In party, if master loot and we're the leader, we're the master looter
+        -- In party, master looter is typically the party leader when loot method is master
+        -- But check if there's a way to verify the actual master looter
+        if UnitIsPartyLeader and UnitIsPartyLeader("player") then
+            return true
+        end
+        -- Fallback: in parties, the leader is usually the master looter
         return UnitIsGroupLeader("player")
     else
         -- Solo, can't be master looter
@@ -8063,3 +8141,4 @@ itemBindings = {
     [23668]=1,
     [13325]=1,
 }
+
