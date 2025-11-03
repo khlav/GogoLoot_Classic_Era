@@ -1,6 +1,13 @@
-<img src="assets/GogoLoot_Classic_Era_Lite.png" width="40" height="40" align="left">
-
-# GogoLoot - Classic Era Lite
+<table border="0">
+<tr>
+<td valign="middle">
+<img src="assets/GogoLoot_Classic_Era_Lite.png" width="40" height="40">
+</td>
+<td valign="middle">
+<h1>GogoLoot - Classic Era Lite</h1>
+</td>
+</tr>
+</table>
 
 Don't let Loot slow down your zug!
 
