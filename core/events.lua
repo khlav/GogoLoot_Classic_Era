@@ -7,8 +7,6 @@ local lootTicker = nil
 
 function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
     --GogoLoot._utils.debug(evt)
-    --if ("LOOT_READY" == evt or "LOOT_OPENED" == evt) and not canLoot then
-    --    canOpenWindow = true
     --[[if "LOOT_BIND_CONFIRM" == evt and GogoLoot_Config.autoConfirm then
         local id = select(1, GetLootSlotInfo(arg))
         if id and (not internalIgnoreList[id]) and (not GogoLoot_Config.ignoredItemsMaster[id]) and (not GogoLoot_Config.ignoredItemsSolo[id]) then -- items from config UI
@@ -32,10 +30,9 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
         lootAPIOpen = true
     elseif ("LOOT_OPENED" == evt) and canLoot then
         GogoLoot._utils.debug("LootReady! " .. evt)
-        GogoLoot.canOpenWindow = true
         if GetCVarBool("autoLootDefault") ~= IsModifiedClick("AUTOLOOTTOGGLE") then
             if not GogoLoot_Config.enabled then
-                GogoLoot:showLootFrame("GogoLoot disabled")
+                -- GogoLoot disabled, rely on Blizzard default window
             else
                 if not GogoLoot:areWeMasterLooter() then
                     local index = GetNumLootItems()
@@ -44,9 +41,7 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
                         local result = GogoLoot:VacuumSlotSolo(index)
                         hasNormalLoot = hasNormalLoot or couldntLoot
                     end
-                    if hasNormalLoot then
-                        GogoLoot:showLootFrame("has normal loot solo")
-                    end
+                    -- Rely on Blizzard default window for manual loot
                 else
                     canLoot = false
                     local lootStep = 1
@@ -77,12 +72,23 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
                         end
 
                         if playerIndex[lootStep] and GogoLoot:VacuumSlot(lootStep, playerIndex[lootStep], validPreviouslyHack) then -- normal loot, stop ticking
-                            --if lootTicker then
-                            --    GogoLoot._utils.debug("Cancelled loot ticker [1]")
-                            --    lootTicker:Cancel()
-                            --    lootTicker = nil
-                            --end
-                            GogoLoot:showLootFrame("has normal loot")
+                            -- Item needs manual handling - cancel ticker and wait for auto-looted items to clear
+                            if lootTicker then
+                                GogoLoot._utils.debug("Cancelled loot ticker [item needs manual handling]")
+                                lootTicker:Cancel()
+                                lootTicker = nil
+                            end
+                            -- Wait briefly for Blizzard to clear auto-looted items from the table
+                            C_Timer.After(0.1, function()
+                                -- Re-check if any items remain that need manual handling
+                                local remainingItems = GetNumLootItems()
+                                if remainingItems > 0 then
+                                    GogoLoot._utils.debug("Showing loot window with " .. tostring(remainingItems) .. " remaining items")
+                                    -- Rely on Blizzard default window
+                                else
+                                    GogoLoot._utils.debug("All items were auto-looted, no window needed")
+                                end
+                            end)
                             incrementLootStep()
                             return true
                         end
@@ -112,12 +118,11 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
                 end
             end
         else
-            GogoLoot:showLootFrame("autoloot disabled")
+            -- Autoloot disabled, rely on Blizzard default window
         end
     elseif "LOOT_CLOSED" == evt then
         lootAPIOpen = false
         canLoot = true
-        GogoLoot.canOpenWindow = false
         if lootTicker then
             GogoLoot._utils.debug("Cancelled loot ticker [3]")
             lootTicker:Cancel()
@@ -192,7 +197,7 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
         --print(arg)
         --print(message)
     elseif "LOOT_BIND_CONFIRM" == evt then
-        GogoLoot:showLootFrame("bind confirm")
+        -- Rely on Blizzard default window
     elseif "UI_ERROR_MESSAGE" == evt and message and (message == ERR_ITEM_MAX_COUNT or message == ERR_INV_FULL or string.match(strlower(message), "inventory") or string.match(strlower(message), "loot")) and not GogoLoot._utils.badErrors[message] then
         GogoLoot._utils.debug(message)
         if lootTicker then
@@ -200,27 +205,7 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
             lootTicker:Cancel()
             lootTicker = nil
         end
-        GogoLoot:showLootFrame("inventory error " .. message)
-    elseif "BAG_UPDATE" == evt and GogoLoot_Config and GogoLoot_Config.enableAutoGray and WOW_PROJECT_ID ~= WOW_PROJECT_BURNING_CRUSADE_CLASSIC then
-
-        -- auto gray
-        --GogoLoot._utils.debug("BagUpdate!")
-        if arg and tonumber(arg) then
-            local slt = GetContainerNumSlots(arg)
-            for i=1,slt do
-                local dat = {GetContainerItemInfo(arg, i)}
-                if dat[4] == 0 then
-                    PickupContainerItem(arg, i)
-                    DeleteCursorItem()
-                end
-            end
-        end
-
-        --print(message)
-        --print(a)
-        --print(b)
-        --print(c)
-        --print(arg)
+        -- Rely on Blizzard default window
     elseif "GROUP_ROSTER_UPDATE" == evt then
         local inGroup = IsInGroup()
         if inGroup ~= GogoLoot.isInGroup then
@@ -240,16 +225,12 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
     --    SendChatMessage(string.format(GogoLoot.AUTO_ROLL_ENABLED, 1 == GogoLoot_Config.autoRollThreshold and "Need" or "Greed"), UnitInRaid("Player") and "RAID" or "PARTY")
     elseif "MODIFIER_STATE_CHANGED" == evt and not canLoot then
         if GetCVarBool("autoLootDefault") == IsModifiedClick("AUTOLOOTTOGGLE") then
-            GogoLoot:showLootFrame("modifier state changed")
+            -- Rely on Blizzard default window
         end
     elseif "PLAYER_REGEN_DISABLED" == evt then
-        if GogoLoot_Config.speedyLoot then
-            LootFrame:RegisterEvent('LOOT_OPENED')
-        end
+        -- Combat started - no special handling needed now that speedy loot is removed
     elseif "PLAYER_REGEN_ENABLED" == evt then
-        if GogoLoot_Config.speedyLoot then
-            LootFrame:UnregisterEvent('LOOT_OPENED')
-        end
+        -- Combat ended - no special handling needed now that speedy loot is removed
     elseif "PLAYER_ENTERING_WORLD" == evt then -- init config default
         if (not GogoLoot_Config) or (not GogoLoot_Config._version) or GogoLoot_Config._version < CONFIG_VERSION then
             GogoLoot:BuildConfig()
@@ -276,9 +257,6 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
             GetItemInfo(id)
         end
 
-        if GogoLoot_Config.speedyLoot and not InCombatLockdown() then
-            LootFrame:UnregisterEvent('LOOT_OPENED')
-        end
         local creatorText = "\124TInterface\\TargetingFrame\\UI-RaidTargetingIcon_4.png:0\124t GogoLoot : Team Member"
         GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 
