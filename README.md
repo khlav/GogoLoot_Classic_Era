@@ -1,7 +1,6 @@
-<div>
-  <img src="assets/GogoLoot_Classic_Era_Lite.png" width="64" height="64" style="vertical-align: middle; display: inline-block;" />
-  <h1 style="display: inline-block; vertical-align: middle; margin: 0 0 0 10px;">GogoLoot - Classic Era Lite</h1>
-</div>
+<img src="assets/GogoLoot_Classic_Era_Lite.png" width="40" height="40" align="left">
+
+# GogoLoot - Classic Era Lite
 
 Don't let Loot slow down your zug!
 
