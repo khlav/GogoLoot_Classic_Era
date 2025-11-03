@@ -1,14 +1,21 @@
-# GogoLoot
-
-<img src="assets/GogoLoot_Classic_Era_Lite.png" width="128" height="128">
+<div align="center">
+  <img src="assets/GogoLoot_Classic_Era_Lite.png" width="64" height="64">
+  <h1 style="margin-top: 0;">GogoLoot - Classic Era Lite</h1>
+</div>
 
 Don't let Loot slow down your zug!
 
 ### :gem:  **KEY FEATURES**
 
-* A Classic WoW addon to help speed up runs by automating your Need and Greed Rolls on BoEs.
+* **Automatic Rolls on BoEs:** Automate your Need and Greed rolls on Bind-on-Equip items by rarity (Green, Blue, Purple).
 
-* There's also an ignore list so you don't miss manual rolls on important items like bags or patterns.
+* **Manual Roll List:** Configure an ignore list so you don't miss manual rolls on important items like bags, patterns, recipes, mounts, and pets.
+
+* **Master Looter Support:** 
+  * Automatically distribute loot to configured raid members based on item rarity
+  * Set loot destinations for each rarity tier (Poor, Common, Uncommon, Rare, Epic)
+  * Configure loot threshold and include/exclude BoP items
+  * Ignored items list for master loot mode to ensure important items show in standard loot window
 
 ### :package: **INSTALLATION**
 
