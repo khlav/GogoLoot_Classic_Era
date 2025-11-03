@@ -110,7 +110,7 @@ function GogoLoot:BuildUI()
     -- Add padding to the title by adjusting its position after frame is initialized
     C_Timer.After(0.01, function()
         if frame.titletext then
-            frame.titletext:SetPoint("TOPLEFT", 12, -16)  -- Changed from default -8 to -16 for more padding (move up)
+            frame.titletext:SetPoint("TOPLEFT", 8, -16)  -- Changed from default -8 to -16 for more padding (move up)
         end
     end)
     frame:SetLayout("Fill")
