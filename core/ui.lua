@@ -508,7 +508,12 @@ function GogoLoot:BuildUI()
         -- dont draw at all
         if disabled then return end
 
-        label(widget, "    "..GogoLoot.textToName[filter], 200)
+        -- Wrap each label+dropdown pair in a container to prevent wrapping
+        local container = AceGUI:Create("SimpleGroup")
+        container:SetFullWidth(true)
+        container:SetLayout("Flow")
+
+        label(container, "    "..GogoLoot.textToName[filter], 200)
         local dropdown = AceGUI:Create("Dropdown")
         dropdown:SetWidth(150) -- todo: align right
         dropdown:SetList(players, playerOrder)
@@ -536,12 +541,13 @@ function GogoLoot:BuildUI()
 
         dropdown:SetItemDisabled("---", true)
 
-        widget:AddChild(dropdown)
+        container:AddChild(dropdown)
+        widget:AddChild(container)
     end
 
     render = {
         ["ignoredBase"] = function(widget, group)
-            buildIgnoredFrame(widget, "Enter Item ID, or Drag Item on to Input.", GogoLoot_Config.ignoredItemsSolo, group)
+            buildIgnoredFrame(widget, "NOTE: All |cFFFF8000Legendary items|r, Recipes, Mounts, Pets, and items on this list will always show up for manual rolls.\n\nEnter Item ID, or Drag Item on to Input.", GogoLoot_Config.ignoredItemsSolo, group)
         end,
         ["ignoredMaster"] = function(widget, group)
             buildIgnoredFrame(widget, "NOTE: All |cFFFF8000Legendary items|r, as well as non-tradable Quest Items, are always ignored and will appear in a Standard Loot Window.\n\nItems on this list will always show up in the Standard Loot Window.\n\nEnter Item ID, or Drag Item on to Input.", GogoLoot_Config.ignoredItemsMaster, group, 200)
@@ -647,27 +653,19 @@ function GogoLoot:BuildUI()
             widget:AddChild(purpleContainer)
 
             spacer2(widget)
-            labelLarge(widget, "Manual Roll List")
 
-            label(widget, "|cffff8000Legendary items|r, Recipes, Mounts, Pets, and items on this list will always show up for manual rolls.")
-            spacer(widget)
-
-
-            local tabs = AceGUI:Create("SimpleGroup")--AceGUI:Create("TabGroup")
-            tabs:SetLayout("Flow")
-            --[[tabs:SetTabs({
+            local tabs = AceGUI:Create("TabGroup")
+            tabs:SetLayout("Flow") 
+            tabs:SetTabs({
                 {
-                    text = "Ignored Items",
+                    text = "Manual Roll List",
                     value="ignoredBase"
                 },
-            })]]
+            })
             tabs:SetFullWidth(true)
             tabs:SetFullHeight(true)
-            --tabs:SetCallback("OnGroupSelected", function(widget, event, group) 
-            --    widget:ReleaseChildren() render[group](widget, group)
-            --end)
-            render["ignoredBase"](tabs, "ignoredBase")
-            --tabs:SelectTab("ignoredBase")
+            tabs:SetCallback("OnGroupSelected", function(widget, event, group) widget:ReleaseChildren() render[group](widget, group) end)
+            tabs:SelectTab("ignoredBase")
             widget:AddChild(tabs)
         end,
         ["ml"] = function(widget, group)
