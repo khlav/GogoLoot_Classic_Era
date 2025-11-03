@@ -19,8 +19,6 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
         end
     else]]
 
-    GogoLoot:TradeEvent(evt, arg, message, a, b, c, ...)
-
     if ("ADDON_LOADED" == evt) then
         if ("GogoLoot_Classic_Era" == arg) then
             events:UnregisterEvent("ADDON_LOADED")

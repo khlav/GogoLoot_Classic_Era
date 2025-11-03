@@ -67,8 +67,5 @@ function GogoLoot:Initialize(events)
 
         return buttons;
     end
-
-    -- Hook trade events
-    GogoLoot:HookTrades(events)
 end
 

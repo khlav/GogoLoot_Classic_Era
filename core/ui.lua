@@ -11,11 +11,6 @@ GogoLoot.OUT_OF_RANGE = "{rt4} GogoLoot : Tried to loot %s to %s, but %s was out
 
 GogoLoot.ADDON_CONFLICT = "\124TInterface\\TargetingFrame\\UI-RaidTargetingIcon_4.png:0\124t GogoLoot : You have multiple addons running that are attempting to interact with the loot window. This will cause problems. If you don't disable your other loot addons you will experience issues with GogoLoot."
 
-GogoLoot.TRADE_COMPLETE = "{rt4} GogoLoot : I gave %s to %s" -- no period, added by the logic so COMPLETE_RECEIVED can be appended cleanly
-GogoLoot.TRADE_COMPLETE_RECEIVED = "{rt4} GogoLoot : I received %s from %s"
-GogoLoot.TRADE_CANCELLED = "{rt4} GogoLoot : Trade with %s cancelled."
-GogoLoot.TRADE_FAILED = "{rt4} GogoLoot : Trade with %s failed."
-
 GogoLoot.API_WARNING = "\124TInterface\\TargetingFrame\\UI-RaidTargetingIcon_4.png:0\124t GogoLoot : Due to a recent Blizzard API change, you may occasionally see a Loot Window if you attempt loot while in combat. Sorry!"
 
 GogoLoot.conflicts = { -- name must match the .TOC filename
@@ -542,26 +537,6 @@ function GogoLoot:BuildUI()
                 end
             end)
 
-            local tradeAnnounceLabel = "Announce Trades when in Group"
-            if GogoLoot:HasGargulCheckbox() then
-                tradeAnnounceLabel = tradeAnnounceLabel .. " (Disabled - Using Gargul)"
-                -- Ensure trade announcements are disabled when Gargul is present
-                GogoLoot_Config.disableTradeAnnounce = true
-            end
-            local tradeAnnounce = checkbox(widget, tradeAnnounceLabel)
-            if GogoLoot:HasGargulCheckbox() then
-                tradeAnnounce:SetDisabled(true)
-                tradeAnnounce:SetValue(false)
-            else
-                tradeAnnounce:SetDisabled(false)
-                tradeAnnounce:SetValue(not GogoLoot_Config.disableTradeAnnounce)
-            end
-            tradeAnnounce:SetCallback("OnValueChanged", function()
-                if not GogoLoot:HasGargulCheckbox() then
-                    GogoLoot_Config.disableTradeAnnounce = not tradeAnnounce:GetValue()--print("Callback!  " .. tostring(speedyLoot:GetValue()))
-                end
-            end)
-
             --[[
             local autoAccept = checkbox(widget, "Speedy Confirm (Auto Confirm BoP Loot)")
             autoAccept:SetCallback("OnValueChanged", function()
@@ -809,14 +784,6 @@ function GogoLoot:BuildUI()
             labelLarge(widget, "Addon Compatibility")
             
             spacer(widget)
-            
-            if GogoLoot:HasGargulCheckbox() then
-                labelNormal(widget, "• Gargul is installed. GogoLoot's trade announcements are automatically disabled to prevent duplicate announcements. Use Gargul's trade announcement checkbox in the trade window instead.")
-            else
-                labelNormal(widget, "• If you have Gargul installed, GogoLoot will automatically disable its trade announcements to prevent conflicts. Use Gargul's trade announcement checkbox in the trade window instead.")
-            end
-
-            spacer2(widget)
             
             labelNormal(widget, "Macro to Delete Grays")
             labelNormal(widget, "• Blizzard has removed the ability for add-ons to automatically delete gray items, however you can still use this macro to do it.")
