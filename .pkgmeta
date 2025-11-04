@@ -1,6 +1,6 @@
 package-as: GogoLoot_Classic_Era_Lite
 
-# Don't create a nolib version (since libraries are embedded)
+g# Don't create a nolib version (since libraries are embedded)
 enable-nolib-creation: no
 
 # Include the license file in the packaged addon
@@ -10,7 +10,8 @@ license-output: LICENSE.txt
 ignore:
   - build.sh
   - build/
-  - assets/
+  - assets
+  - assets/*
   - .github/
   - .gitignore
   - .pkgmeta
