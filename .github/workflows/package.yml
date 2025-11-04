@@ -20,4 +20,4 @@ jobs:
       - name: Package and release for Classic Era
         uses: BigWigsMods/packager@v2
         with:
-          args: -g classic -S
+          args: -g classic
