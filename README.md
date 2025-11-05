@@ -17,6 +17,11 @@ Don't let Loot slow down your zug!
   * Configure loot threshold and include/exclude BoP items
   * Ignored items list for master loot mode to ensure important items show in standard loot window
 
+### :link: **DOWNLOAD LINKS**
+
+* **GitHub:** https://github.com/khlav/GogoLoot_Classic_Era_Lite
+* **CurseForge:** https://www.curseforge.com/wow/addons/gogoloot-classic-era-lite
+
 ### :package: **MANUAL INSTALLATION**
 
 1. **Find your WoW Classic Era AddOns folder:**
@@ -33,11 +38,6 @@ Don't let Loot slow down your zug!
    - Launch WoW Classic Era
    - At the character selection screen, click "AddOns" button (bottom left)
    - Make sure "GogoLoot - Classic Era Lite" is listed and enabled
-
-### :link: **DOWNLOAD LINKS**
-
-* **GitHub:** https://github.com/khlav/GogoLoot_Classic_Era_Lite
-* **CurseForge:** https://www.curseforge.com/wow/addons/gogoloot-classic-era-lite
 
 ### :link:  **ORIGINAL ADD-ON LINKS**
 
