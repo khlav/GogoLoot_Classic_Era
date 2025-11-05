@@ -57,7 +57,11 @@ function GogoLoot:areWeMasterLooter()
         return false
     elseif IsInGroup() then
         -- In party, master looter is typically the party leader when loot method is master
-        -- But check if there's a way to verify the actual master looter
+        -- First verify loot method is actually master
+        if GetLootMethod() ~= "master" then
+            return false
+        end
+        -- Then check if we're the party leader
         if UnitIsPartyLeader and UnitIsPartyLeader("player") then
             return true
         end
