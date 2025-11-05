@@ -17,7 +17,7 @@ Don't let Loot slow down your zug!
   * Configure loot threshold and include/exclude BoP items
   * Ignored items list for master loot mode to ensure important items show in standard loot window
 
-### :package: **INSTALLATION**
+### :package: **MANUAL INSTALLATION**
 
 1. **Find your WoW Classic Era AddOns folder:**
    - Windows: `C:\Program Files (x86)\World of Warcraft\_classic_era_\Interface\AddOns` (default, may be different)
