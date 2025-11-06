@@ -53,6 +53,21 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
                     -- Wait a brief moment for Blizzard to update the Master Looter frame
                     C_Timer.After(0.1, function()
                     local function doLootStep()
+                        -- Periodically check and hide MasterLootFrame if it's showing stale data
+                        -- This is especially important during combat when timing can be off
+                        if MasterLootFrame and MasterLootFrame:IsShown() then
+                            local slotValid = false
+                            if MasterLootFrame.lootSlot then
+                                local texture, item = GetLootSlotInfo(MasterLootFrame.lootSlot)
+                                if texture and item then
+                                    slotValid = true
+                                end
+                            end
+                            if not slotValid then
+                                MasterLootFrame:Hide()
+                            end
+                        end
+                        
                         local numLootItems = GetNumLootItems()
                         
                         -- Check if no items remain
@@ -151,9 +166,20 @@ function GogoLoot:EventHandler(events, evt, arg, message, a, b, c, ...)
     elseif "LOOT_SLOT_CLEARED" == evt then
         -- Hide MasterLootFrame when slots are cleared to prevent stale data
         -- This happens when items are auto-looted via GiveMasterLoot()
-        if MasterLootFrame and MasterLootFrame:IsShown() then
-            MasterLootFrame:Hide()
-        end
+        -- Use C_Timer to ensure it works even during combat restrictions
+        C_Timer.After(0, function()
+            if MasterLootFrame and MasterLootFrame:IsShown() then
+                -- Validate the slot the frame is showing is still valid
+                if MasterLootFrame.lootSlot then
+                    local texture, item = GetLootSlotInfo(MasterLootFrame.lootSlot)
+                    if not texture or not item then
+                        MasterLootFrame:Hide()
+                    end
+                else
+                    MasterLootFrame:Hide()
+                end
+            end
+        end)
     elseif "START_LOOT_ROLL" == evt then
         local rollid = tonumber(arg)
         if rollid and GogoLoot_Config.autoRoll then

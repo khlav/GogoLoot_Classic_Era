@@ -138,6 +138,17 @@ function GogoLoot:VacuumSlot(index, playerIndex, validPreviouslyHack)
                 if playerID then
                     validPreviouslyHack[targetPlayerName] = true
                     GiveMasterLoot(index, playerID, true)
+                    -- Immediately hide MasterLootFrame after auto-looting to prevent stale display
+                    -- This is especially important during combat when timing can be off
+                    -- Use a small delay to ensure GiveMasterLoot completes first
+                    C_Timer.After(0.05, function()
+                        if MasterLootFrame and MasterLootFrame:IsShown() then
+                            -- Verify the slot being shown is actually the one we just looted
+                            if MasterLootFrame.lootSlot == index then
+                                MasterLootFrame:Hide()
+                            end
+                        end
+                    end)
                     return false
                 else
                     GogoLoot._utils.debug("Player " .. targetPlayerName .. " has no ID!")

@@ -31,6 +31,32 @@ function GogoLoot:Initialize(events)
         hooksecurefunc(MasterLootFrame, 'Hide', function(self)
             self:ClearAllPoints()
         end)
+        
+        -- Also hook Show() to validate slot data when frame is displayed
+        -- This prevents stale items from showing, especially during combat
+        hooksecurefunc(MasterLootFrame, 'Show', function(self)
+            -- Validate the slot that MasterLootFrame is trying to show
+            if self.lootSlot then
+                local texture, item, quantity, quality, locked = GetLootSlotInfo(self.lootSlot)
+                -- If slot is invalid or doesn't exist, hide the frame immediately
+                -- Use a small delay to ensure it works even during combat
+                if not texture or not item then
+                    C_Timer.After(0.01, function()
+                        if MasterLootFrame and MasterLootFrame:IsShown() then
+                            -- Double-check the slot is still invalid
+                            if MasterLootFrame.lootSlot then
+                                local checkTexture, checkItem = GetLootSlotInfo(MasterLootFrame.lootSlot)
+                                if not checkTexture or not checkItem then
+                                    MasterLootFrame:Hide()
+                                end
+                            else
+                                MasterLootFrame:Hide()
+                            end
+                        end
+                    end)
+                end
+            end
+        end)
     end
 
     -- Add gray and white quality buttons to loot threshold dropdown
