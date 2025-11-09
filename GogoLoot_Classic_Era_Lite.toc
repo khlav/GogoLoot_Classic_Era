@@ -2,7 +2,7 @@
 ## Title: GogoLoot - Classic Era Lite
 ## Author: Forked by Dunckan for Classic Era. Original addon by Gogo, Aero
 ## Notes: Don't Let Loot Slow Down Your Zug! A Classic WoW Master Looting & Loot Automation Tool.
-## Version: v1.1.3
+## Version: v1.1.4
 ## SavedVariablesPerCharacter: GogoLoot_Config
 ## X-Curse-Project-ID: 1378250
 
@@ -28,6 +28,12 @@ core\commands.lua
 
 integrations\json.lua
 
+core\events\state.lua
+core\events\init.lua
+core\events\loot.lua
+core\events\roll.lua
+core\events\group.lua
+core\events\ui.lua
 core\events.lua
 core\init.lua
 

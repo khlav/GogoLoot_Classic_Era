@@ -67,7 +67,8 @@ function GogoLoot:RegisterCommands()
     end
 
     SLASH_LV1 = "/gl"
-    SLASH_LV2 = "/gogoloot"
+    SLASH_LV2 = "/gogo"
+    SLASH_LV3 = "/gogoloot"
 
     SLASH_TG1 = "/tg"
 end
