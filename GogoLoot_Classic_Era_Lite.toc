@@ -28,6 +28,12 @@ core\commands.lua
 
 integrations\json.lua
 
+core\events\state.lua
+core\events\init.lua
+core\events\loot.lua
+core\events\roll.lua
+core\events\group.lua
+core\events\ui.lua
 core\events.lua
 core\init.lua
 
