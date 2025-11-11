@@ -7,15 +7,12 @@ Don't let Loot slow down your zug!
 
 ### :gem:  **KEY FEATURES**
 
-* **Automatic Rolls on BoEs:** Automate your Need and Greed rolls on Bind-on-Equip items by rarity (Green, Blue, Purple).
-
-* **Manual Roll List:** Configure an ignore list so you don't miss manual rolls on important items like bags, patterns, recipes, mounts, and pets.
-
-* **Master Looter Support:** 
-  * Automatically distribute loot to configured raid members based on item rarity
-  * Set loot destinations for each rarity tier (Poor, Common, Uncommon, Rare, Epic)
-  * Configure loot threshold and include/exclude BoP items
-  * Ignored items list for master loot mode to ensure important items show in standard loot window
+*   **Automatic Rolls on BoEs:** Automate your Need and Greed rolls on Bind-on-Equip items by rarity (Green, Blue, Purple).
+*   **Manual Roll List:** Configure an ignore list so you don't miss manual rolls on important items like bags, patterns, recipes, mounts, and pets.
+*   **Master Looter Support:**
+    *   Set loot destinations for each rarity tier (Poor, Common, Uncommon, Rare, Epic)
+    *   Set an optional destination for quest items/materials from Classic raids (e.g. crafting mats, coins, scarabs)
+    *   Ignored items list ensures important items are not auto-looted and can be rolled.
 
 ### :link: **DOWNLOAD LINKS**
 
