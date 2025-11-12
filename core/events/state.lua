@@ -16,6 +16,7 @@ local lootState = {
     canLoot = true,
     lootAPIOpen = false,
     lootTicker = nil,
+    failedPlayers = nil, -- Track players with full bags per loot session
 }
 
 -- Export state for use by event handlers

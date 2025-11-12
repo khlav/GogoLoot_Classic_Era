@@ -1,5 +1,14 @@
 # GogoLoot - Classic Era Lite
 
+## [v1.2.2](https://github.com/khlav/GogoLoot_Classic_Era_Lite/tree/v1.2.2) (2025-01-XX)
+[Full Changelog](https://github.com/khlav/GogoLoot_Classic_Era_Lite/commits/v1.2.2) [Previous Releases](https://github.com/khlav/GogoLoot_Classic_Era_Lite/releases)
+
+- v1.2.2: Fix master loot autolooting when players have full bags
+  - Autolooting now continues processing other items when one player has full bags
+  - Failed items can be manually retried (to same player or different player)
+  - Players with full bags are automatically skipped for remaining items in the session
+  - Per-slot verification ensures accurate tracking of successful vs failed loot attempts
+
 ## [v1.2.1](https://github.com/khlav/GogoLoot_Classic_Era_Lite/tree/v1.2.1) (2025-01-XX)
 [Full Changelog](https://github.com/khlav/GogoLoot_Classic_Era_Lite/commits/v1.2.1) [Previous Releases](https://github.com/khlav/GogoLoot_Classic_Era_Lite/releases)
 

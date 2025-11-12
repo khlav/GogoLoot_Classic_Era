@@ -6,12 +6,10 @@ function GogoLoot._events.ui:HandleUIErrorMessage(events, evt, message)
     
     if message and (message == ERR_ITEM_MAX_COUNT or message == ERR_INV_FULL or string.match(strlower(message), "inventory") or string.match(strlower(message), "loot")) and not GogoLoot._utils.badErrors[message] then
         GogoLoot._utils.debug(message)
-        if lootState.lootTicker then
-            GogoLoot._utils.debug("Cancelled loot ticker [4]")
-            lootState.lootTicker:Cancel()
-            lootState.lootTicker = nil
-        end
-        -- Rely on Blizzard default window
+        
+        -- Don't cancel the ticker - let it continue processing other items
+        -- The delayed slot verification in loot_master.lua will catch the failure
+        -- and mark the correct player (it has access to targetPlayerName)
     end
 end
 

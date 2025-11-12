@@ -146,9 +146,40 @@ function GogoLoot:VacuumSlot(index, playerIndex, validPreviouslyHack)
             if targetPlayerName then
                 GogoLoot._utils.debug("Looting to " .. targetPlayerName)
                 local playerID = playerIndex[targetPlayerName]
+                
+                -- Check if this player has full bags (from previous failed attempts)
+                local lootState = GogoLoot._loot_state
+                if lootState.failedPlayers and lootState.failedPlayers[strlower(targetPlayerName)] then
+                    GogoLoot._utils.debug("Player " .. targetPlayerName .. " has full bags, skipping")
+                    return true -- Return true to allow manual handling/retry
+                end
+                
                 if playerID then
-                    validPreviouslyHack[targetPlayerName] = true
                     GiveMasterLoot(index, playerID, true)
+                    
+                    -- Use a delayed check to see if the loot actually succeeded
+                    -- If the slot is still there after a short delay, it likely failed
+                    C_Timer.After(0.2, function()
+                        -- Check if slot still exists (loot failed)
+                        if index <= GetNumLootItems() then
+                            local texture, item = GetLootSlotInfo(index)
+                            if texture and item then
+                                -- Slot still exists - loot failed
+                                GogoLoot._utils.debug("Loot to " .. targetPlayerName .. " appears to have failed")
+                                if not lootState.failedPlayers then
+                                    lootState.failedPlayers = {}
+                                end
+                                lootState.failedPlayers[strlower(targetPlayerName)] = true
+                            else
+                                -- Slot cleared - loot succeeded, mark player as valid
+                                validPreviouslyHack[targetPlayerName] = true
+                            end
+                        else
+                            -- Slot cleared - loot succeeded, mark player as valid
+                            validPreviouslyHack[targetPlayerName] = true
+                        end
+                    end)
+                    
                     -- Immediately hide MasterLootFrame after auto-looting to prevent stale display
                     -- This is especially important during combat when timing can be off
                     -- Use a small delay to ensure GiveMasterLoot completes first
@@ -163,7 +194,7 @@ function GogoLoot:VacuumSlot(index, playerIndex, validPreviouslyHack)
                     return false
                 else
                     GogoLoot._utils.debug("Player " .. targetPlayerName .. " has no ID!")
-                    if validPreviouslyHack[targetPlayerName] then -- we already looted it (hack to fix loot window, refactor this later)
+                    if validPreviouslyHack[targetPlayerName] then -- we already successfully looted it
                         return false
                     end
                 end

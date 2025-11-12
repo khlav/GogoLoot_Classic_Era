@@ -154,6 +154,7 @@ end
 local function handleMasterLooterLoot(lootState)
     lootState.canLoot = false
     local validPreviouslyHack = {}
+    lootState.failedPlayers = {} -- Track players with full bags
 
     -- Wait a brief moment for Blizzard to update the Master Looter frame
     C_Timer.After(MASTER_LOOT_DELAY, function()
@@ -165,6 +166,8 @@ local function handleMasterLooterLoot(lootState)
             local shouldStop = doLootStep(lootState, validPreviouslyHack)
             if shouldStop then
                 cancelLootTicker(lootState)
+                -- Reset canLoot when ticker stops (allows manual retry)
+                lootState.canLoot = true
             end
         end, LOOT_TICKER_MAX_ITERATIONS)
     end)
@@ -220,6 +223,7 @@ function GogoLoot._events.loot:HandleLootClosed(events, evt)
     local lootState = GogoLoot._loot_state
     lootState.lootAPIOpen = false
     lootState.canLoot = true
+    lootState.failedPlayers = nil -- Clear failed players tracking
     cancelLootTicker(lootState, "loot closed")
 end
 
