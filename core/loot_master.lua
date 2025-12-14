@@ -97,6 +97,13 @@ function GogoLoot:VacuumSlot(index, playerIndex, validPreviouslyHack)
                 end
             end
         end
+        
+        -- Ensure ItemIDCache is populated even if ItemInfoCache already exists
+        -- This is needed to extract color/rarity information from the item link
+        if not ItemIDCache[lootLink] then
+            ItemIDCache[lootLink] = {string.find(lootLink,"|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*):?(%-?%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")}
+        end
+        
         local color = ItemIDCache[lootLink][3]
         local rarity = GogoLoot._utils.colorToRarity[color] or 6
         local doLoot = rarity < 5

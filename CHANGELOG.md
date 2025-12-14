@@ -1,5 +1,13 @@
 # GogoLoot - Classic Era Lite
 
+## [v1.2.4](https://github.com/khlav/GogoLoot_Classic_Era_Lite/tree/v1.2.4) (2025-01-XX)
+[Full Changelog](https://github.com/khlav/GogoLoot_Classic_Era_Lite/commits/v1.2.4) [Previous Releases](https://github.com/khlav/GogoLoot_Classic_Era_Lite/releases)
+
+- v1.2.4: Fix ItemIDCache not being populated when ItemInfoCache already exists
+  - Fixed bug where items (especially gray/white) would fail to distribute if ItemInfoCache was populated but ItemIDCache was not
+  - Ensures ItemIDCache is always populated before accessing color/rarity information
+  - Prevents items from being incorrectly filtered out due to missing cache data
+
 ## [v1.2.3](https://github.com/khlav/GogoLoot_Classic_Era_Lite/tree/v1.2.3) (2025-01-XX)
 [Full Changelog](https://github.com/khlav/GogoLoot_Classic_Era_Lite/commits/v1.2.3) [Previous Releases](https://github.com/khlav/GogoLoot_Classic_Era_Lite/releases)
 
