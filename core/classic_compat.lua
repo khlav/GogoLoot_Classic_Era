@@ -31,3 +31,9 @@ if not GetLootMethod or type(GetLootMethod) ~= "function" then
     end
 end
 
+-- IsAddOnLoaded was moved to the C_AddOns namespace in a client update;
+-- restore the old global so callers don't need to change.
+if (not IsAddOnLoaded or type(IsAddOnLoaded) ~= "function") and C_AddOns and C_AddOns.IsAddOnLoaded then
+    IsAddOnLoaded = C_AddOns.IsAddOnLoaded
+end
+
